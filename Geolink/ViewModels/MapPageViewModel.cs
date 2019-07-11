@@ -218,12 +218,12 @@ namespace Geolink
             {
                 await Task.Yield();
                 var locator = CrossGeolocator.Current;
-                if (locator.IsGeolocationAvailable)
-                {
-                    var action = App.Current.MainPage.DisplayAlert("price", "Please enable location", "ok", "cancel");
+                //if (locator.IsGeolocationAvailable)
+                //{
+                //    var action = App.Current.MainPage.DisplayAlert("price", "Please enable location", "ok", "cancel");
 
-                    return;
-                }
+                //    return;
+                //}
                 var request = new GeolocationRequest(GeolocationAccuracy.High, TimeSpan.FromSeconds(5000));
                 var location = await Geolocation.GetLocationAsync(request);
 
@@ -309,7 +309,7 @@ namespace Geolink
             if (place != null)
             {
                 DestinationCoordinates = new Location(place.Latitude, place.Longitude);
-                LoadRouteCommand.Execute(null);
+                //LoadRouteCommand.Execute(null);
                 //RecentPlaces.Add(placeA);
             }
         }

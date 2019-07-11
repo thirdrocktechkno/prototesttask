@@ -15,6 +15,8 @@ namespace Geolink
     {
         public double totalPrice { get; set; }
         public double innerPrice = 0;
+        public double totalDistance = 0;
+        public double innerDistance = 0;
         private ObservableCollection<LatLong> latLongList = new ObservableCollection<LatLong>();
         public ObservableCollection<LatLong> LatLongList
         {
@@ -166,19 +168,21 @@ namespace Geolink
                     var EndLong = list.Last().Longitude.ToString();
                     var DirectionRes = await (this.BindingContext as MapPageViewModel).googleMapsApi.GetDirections(startLat, startLong, EndLat, EndLong);
                     if (DirectionRes == null) return;
-                    var totaldistance = DirectionRes.Routes.First().Legs.First().Distance;
+                    totalDistance = DirectionRes.Routes.First().Legs.First().Distance.Value;
                     if (latLongBools != null && latLongBools.Count > 0)
                     {
                         var innerDistanceRes = await (this.BindingContext as MapPageViewModel).googleMapsApi.GetDirections(latLongBools.First().lat.ToString(), latLongBools.First().longg.ToString(), latLongBools.Last().lat.ToString(), latLongBools.Last().longg.ToString());
                         if (innerDistanceRes == null) return;
-                        var innerDistance = innerDistanceRes.Routes.First().Legs.First().Distance;
-                        innerPrice = innerDistance.Value / 1000 * 47;//47 cents
+                        innerDistance = innerDistanceRes.Routes.First().Legs.First().Distance.Value;
+                        innerPrice = innerDistance / 1000 * 47;//47 cents
                     }
 
-                    totalPrice = totaldistance.Value / 1000 * 94 - innerPrice;
+                    var countableDistance = totalDistance - innerDistance;
+                    totalPrice = (countableDistance / 1000 * 94) + innerPrice;
+                    var alert = "Total Distance : " + totalDistance.ToString() + "& Total Price : " + totalPrice.ToString() + "\nOuter Distance : " + countableDistance.ToString() + " @Price : 94 cents\nInner Distance : " + innerDistance.ToString() + " @Price : 47 cents";
+                    var action = App.Current.MainPage.DisplayAlert("Price", alert, "ok", "cancel");
                     innerPrice = 0;
-
-                    var action = App.Current.MainPage.DisplayAlert("price", totalPrice.ToString() + "cents", "ok", "cancel");
+                    latLongBools = null;
 
                 }
                 catch (Exception ex)
@@ -242,13 +246,6 @@ namespace Geolink
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            //var safeInsets = On<Xamarin.Forms.PlatformConfiguration.iOS>().SafeAreaInsets();
-
-            //if (safeInsets.Top > 0)
-            //{
-            //    menuIcon.Margin = backButton.Margin = new Thickness(20, 40, 20, 0);
-            //    headerSearch.BackButtonPadding = new Thickness(0, 20, 0, 0);
-            //}
         }
 
 
@@ -310,9 +307,8 @@ namespace Geolink
             {
                 map.Polygons.Clear();
 
-                string linestring = Properties[Constants.LINE_STRING] as string;
+                string linestring = Properties[Constants.LineString] as string;
 
-                //string temp = linestring.Replace("POLYGON", "").Replace("((", "").Replace("))", "");
                 string[] PolygonList = linestring.Replace("MULTIPOLYGON", "").Replace("POLYGON", "").Replace("),(", ")),((").Split(new String[] { "),(" }, StringSplitOptions.None);// temp.Split("),(");
 
                 foreach (var polygon in PolygonList)
@@ -342,14 +338,12 @@ namespace Geolink
                             if (!LatLongList.Contains(cord))
                                 LatLongList.Add(cord);
                         }
-                        //poly.Positions.Add(new Xamarin.Forms.GoogleMaps.Position(coords[0], coords[1]));
                     }
 
                     foreach (var item in LatLongList)
                     {
                         if (addnamakwa)
                         {
-                            //poly.Positions.Add(new Xamarin.Forms.GoogleMaps.Position(coords[0], coords[1]));
                             polyy.Positions.Add(new Xamarin.Forms.GoogleMaps.Position(item.lat, item.longg));
                             addnamakwa = false;
                         }
@@ -360,8 +354,6 @@ namespace Geolink
                     }
 
                     map.Polygons.Add(polyy);
-
-                    //OnCenterMap(new Location(centerPosition.Latitude, centerPosition.Longitude));
                 }
 
                 return true;
@@ -405,7 +397,6 @@ namespace Geolink
                 return null;
 
             double[] coords = new double[2];
-            //here coordinates[1]=for long 
             if (!double.TryParse(coordinates[1], out coords[0]))
                 return null;
             if (!double.TryParse(coordinates[0], out coords[1]))
