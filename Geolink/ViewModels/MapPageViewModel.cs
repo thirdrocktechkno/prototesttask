@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Acr.UserDialogs;
+using Plugin.Geolocator;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.GoogleMaps;
@@ -14,12 +16,13 @@ namespace Geolink
 {
     public class MapPageViewModel : BaseViewModel
     {
-        IGoogleMapsApiService googleMapsApi = new GoogleMapsApiService();
+        public IGoogleMapsApiService googleMapsApi = new GoogleMapsApiService();
 
         public PageStatusEnum PageStatusEnum { get; set; }
 
         public ICommand DrawRouteCommand { get; set; }
         public ICommand GetPlacesCommand { get; set; }
+        public ICommand GetDestinataionPlacesCommand { get; set; }
         public ICommand GetUserLocationCommand { get; set; }
         public ICommand ChangePageStatusCommand { get; set; }
         public ICommand GetLocationNameCommand { get; set; }
@@ -29,17 +32,90 @@ namespace Geolink
         public ICommand CleanPolylineCommand { get; set; }
         public ICommand ChooseLocationCommand { get; set; }
 
-        public ObservableCollection<GooglePlaceAutoCompletePrediction> Places { get; set; }
+        //public ObservableCollection<GooglePlaceAutoCompletePrediction> Places { get; set; }
         public ObservableCollection<GooglePlaceAutoCompletePrediction> RecentPlaces { get; set; }
-        public GooglePlaceAutoCompletePrediction RecentPlace1 {get;set;}
+        public GooglePlaceAutoCompletePrediction RecentPlace1 { get; set; }
         public GooglePlaceAutoCompletePrediction RecentPlace2 { get; set; }
         public ObservableCollection<PriceOption> PriceOptions { get; set; }
         public PriceOption PriceOptionSelected { get; set; }
 
-        public string PickupLocation { get; set; }
+        //public string PickupLocation { get; set; }
 
-        Location OriginCoordinates { get; set; }
-        Location DestinationCoordinates { get; set; }
+        public Location OriginCoordinates { get; set; }
+        public Location DestinationCoordinates { get; set; }
+        //IsOirinPlacesList
+        //IsDestingationPlacesList
+
+
+        bool isInitialLoading = true;
+        public bool IsInitialLoading
+        {
+            get
+            {
+                return isInitialLoading;
+            }
+            set
+            {
+                isInitialLoading = value;
+                OnPropertyChanged();
+            }
+        }
+
+        bool isOirinPlacesList;
+        public bool IsOirinPlacesList
+        {
+            get
+            {
+                return isOirinPlacesList;
+            }
+            set
+            {
+                isOirinPlacesList = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        bool isDestingationPlacesList;
+        public bool IsDestingationPlacesList
+        {
+            get
+            {
+                return isDestingationPlacesList;
+            }
+            set
+            {
+                isDestingationPlacesList = value;
+                OnPropertyChanged();
+            }
+        }
+
+        string pickupLocation;
+        public string PickupLocation
+        {
+            get
+            {
+                return pickupLocation;
+            }
+            set
+            {
+                pickupLocation = value;
+                OnPropertyChanged();
+                if (!string.IsNullOrEmpty(pickupLocation) && places == null)
+                {
+                    //if (pickupLocation.Length % 3 != 0)
+                    //    return;
+                    GetPlacesCommand.Execute(pickupLocation);
+                    places = null;
+                }
+                else
+                {
+                    places = null;
+                    CleanPolylineCommand.Execute(null);
+                    IsOirinPlacesList = false;
+                }
+            }
+        }
 
         string _destinationLocation;
         public string DestinationLocation
@@ -51,9 +127,19 @@ namespace Geolink
             set
             {
                 _destinationLocation = value;
-                if (!string.IsNullOrEmpty(_destinationLocation))
+                OnPropertyChanged();
+                if (!string.IsNullOrEmpty(_destinationLocation) && places == null)
                 {
-                    GetPlacesCommand.Execute(_destinationLocation);
+                    //if (_destinationLocation.Length % 3 != 0)
+                    //    return;
+                    GetDestinataionPlacesCommand.Execute(_destinationLocation);
+                    places = null;
+                }
+                else
+                {
+                    places = null;
+                    CleanPolylineCommand.Execute(null);
+                    IsDestingationPlacesList = false;
                 }
             }
         }
@@ -69,7 +155,23 @@ namespace Geolink
             {
                 _placeSelected = value;
                 if (_placeSelected != null)
+                {
                     GetPlaceDetailCommand.Execute(_placeSelected);
+                }
+            }
+        }
+
+        ObservableCollection<GooglePlaceAutoCompletePrediction> places;
+        public ObservableCollection<GooglePlaceAutoCompletePrediction> Places
+        {
+            get
+            {
+                return places;
+            }
+            set
+            {
+                places = value;
+                OnPropertyChanged();
             }
         }
 
@@ -78,18 +180,20 @@ namespace Geolink
             LoadRouteCommand = new Command(async () => await LoadRoute());
             GetPlaceDetailCommand = new Command<GooglePlaceAutoCompletePrediction>(async (param) => await GetPlacesDetail(param));
             GetPlacesCommand = new Command<string>(async (param) => await GetPlacesByName(param));
+            GetDestinataionPlacesCommand = new Command<string>(async (param) => await GetDestinationPlacesByName(param));
             GetUserLocationCommand = new Command(async () => await GetActualUserLocation());
             GetLocationNameCommand = new Command<Position>(async (param) => await GetLocationName(param));
             ChangePageStatusCommand = new Command<PageStatusEnum>((param) =>
               {
-                 PageStatusEnum = param;
+                  PageStatusEnum = param;
 
                   if (PageStatusEnum == PageStatusEnum.Default)
                   {
                       CleanPolylineCommand.Execute(null);
                       GetUserLocationCommand.Execute(null);
                       DestinationLocation = string.Empty;
-                  }else if(PageStatusEnum== PageStatusEnum.Searching)
+                  }
+                  else if (PageStatusEnum == PageStatusEnum.Searching)
                   {
                       Places = new ObservableCollection<GooglePlaceAutoCompletePrediction>(RecentPlaces);
                   }
@@ -97,14 +201,14 @@ namespace Geolink
 
             ChooseLocationCommand = new Command<Position>((param) =>
             {
-                if(PageStatusEnum== PageStatusEnum.Searching)
+                if (PageStatusEnum == PageStatusEnum.Searching)
                 {
-                    GetLocationNameCommand.Execute(param);
+                    //GetLocationNameCommand.Execute(param);
                 }
             });
 
-            FillRecentPlacesList();
-            FillPriceOptions();
+            //FillRecentPlacesList();
+            //FillPriceOptions();
             GetUserLocationCommand.Execute(null);
         }
 
@@ -113,7 +217,14 @@ namespace Geolink
             try
             {
                 await Task.Yield();
-                var request = new GeolocationRequest(GeolocationAccuracy.High,TimeSpan.FromSeconds(5000));
+                var locator = CrossGeolocator.Current;
+                if (locator.IsGeolocationAvailable)
+                {
+                    var action = App.Current.MainPage.DisplayAlert("price", "Please enable location", "ok", "cancel");
+
+                    return;
+                }
+                var request = new GeolocationRequest(GeolocationAccuracy.High, TimeSpan.FromSeconds(5000));
                 var location = await Geolocation.GetLocationAsync(request);
 
                 if (location != null)
@@ -129,6 +240,19 @@ namespace Geolink
             }
         }
 
+        public async Task GetDestinationName(Position position)
+        {
+            try
+            {
+                var placemarks = await Geocoding.GetPlacemarksAsync(position.Latitude, position.Longitude);
+                DestinationLocation = placemarks?.FirstOrDefault()?.FeatureName;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+            }
+        }
+
         //Get place 
         public async Task GetLocationName(Position position)
         {
@@ -136,7 +260,6 @@ namespace Geolink
             {
                 var placemarks = await Geocoding.GetPlacemarksAsync(position.Latitude, position.Longitude);
                 PickupLocation = placemarks?.FirstOrDefault()?.FeatureName;
-                
             }
             catch (Exception ex)
             {
@@ -146,22 +269,48 @@ namespace Geolink
 
         public async Task GetPlacesByName(string placeText)
         {
+            //if (!isInitialLoading)
+            //    return;
+
             var places = await googleMapsApi.GetPlaces(placeText);
+            if (places == null) return;
             var placeResult = places.AutoCompletePlaces;
             if (placeResult != null && placeResult.Count > 0)
             {
                 Places = new ObservableCollection<GooglePlaceAutoCompletePrediction>(placeResult);
+                //if (!isInitialLoading)
+                //{
+                //OriginCoordinates = Places?.FirstOrDefault()?.StructuredFormatting.MainText;
+                IsOirinPlacesList = true;
+                //}
+                //else
+                //    isInitialLoading = false;
+
+            }
+        }
+
+
+        public async Task GetDestinationPlacesByName(string placeText)
+        {
+            var places = await googleMapsApi.GetPlaces(placeText);
+            if (places == null) return;
+            var placeResult = places.AutoCompletePlaces;
+            if (placeResult != null && placeResult.Count > 0)
+            {
+                Places = new ObservableCollection<GooglePlaceAutoCompletePrediction>(placeResult);
+                IsDestingationPlacesList = true;
             }
         }
 
         public async Task GetPlacesDetail(GooglePlaceAutoCompletePrediction placeA)
         {
             var place = await googleMapsApi.GetPlaceDetails(placeA.PlaceId);
+            if (places == null) return;
             if (place != null)
             {
                 DestinationCoordinates = new Location(place.Latitude, place.Longitude);
                 LoadRouteCommand.Execute(null);
-                RecentPlaces.Add(placeA);
+                //RecentPlaces.Add(placeA);
             }
         }
 
@@ -170,21 +319,28 @@ namespace Geolink
             if (OriginCoordinates == null)
                 return;
 
+            if (PickupLocation == null || _destinationLocation == null)
+                return;
+            //if (!IsDestingationPlacesList)
+
             ChangePageStatusCommand.Execute(PageStatusEnum.ShowingRoute);
 
             var googleDirection = await googleMapsApi.GetDirections($"{OriginCoordinates.Latitude}", $"{OriginCoordinates.Longitude}", $"{DestinationCoordinates.Latitude}", $"{DestinationCoordinates.Longitude}");
+            if (googleDirection == null) return;
+
             if (googleDirection.Routes != null && googleDirection.Routes.Count > 0)
             {
-               
+
 
                 var positions = (Enumerable.ToList(PolylineHelper.Decode(googleDirection.Routes.First().OverviewPolyline.Points)));
+
                 DrawRouteCommand.Execute(positions);
             }
             else
             {
                 ChangePageStatusCommand.Execute(PageStatusEnum.Default);
                 await UserDialogs.Instance.AlertAsync(":(", "No route found", "Ok");
-               
+
             }
         }
 

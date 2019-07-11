@@ -16,13 +16,6 @@
     <PackageReference Include="Xamarin.Forms.GoogleMaps" Version="3.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="Acr.UserDialogs" Version="7.0.4" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Helpers\" />
-    <Folder Include="Views\" />
-    <Folder Include="Models\" />
-    <Folder Include="Services\" />
-    <Folder Include="Interface\" />
-    <Folder Include="ViewModels\" />
+    <PackageReference Include="Xam.Plugin.Geolocator" Version="4.5.0.6" />
   </ItemGroup>
 </Project>

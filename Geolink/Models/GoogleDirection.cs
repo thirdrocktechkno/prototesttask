@@ -195,4 +195,18 @@ namespace Geolink
         [JsonProperty("status")]
         public string Status { get; set; }
     }
+
+    public class LatLongBool
+    {
+        public double lat { get; set; }
+        public double longg { get; set; }
+        public bool isInMap { get; set; }
+
+    }
+
+    public class LatLong
+    {
+        public double lat { get; set; }
+        public double longg { get; set; }
+    }
 }

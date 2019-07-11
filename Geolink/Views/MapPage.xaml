@@ -1,8 +1,80 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" x:Class="Geolink.MapPage">
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" x:Class="Geolink.MapPage" xmlns:maps="clr-namespace:Xamarin.Forms.GoogleMaps;assembly=Xamarin.Forms.GoogleMaps" xmlns:local="clr-namespace:Geolink;" CenterMapCommand="{Binding CenterMapCommand}" DrawRouteCommand="{Binding DrawRouteCommand}" CleanPolylineCommand="{Binding CleanPolylineCommand}" xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core">
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <OnPlatform.Android>
+                0, 0, 0, 0
+            </OnPlatform.Android>
+            <OnPlatform.WinPhone>
+                0, 0, 0, 0
+            </OnPlatform.WinPhone>
+            <OnPlatform.iOS>
+                0, 0, 0, 0
+            </OnPlatform.iOS>
+        </OnPlatform>
+    </ContentPage.Padding>
     <ContentPage.Content>
-        <Grid HorizontalOptions="Center" VerticalOptions="Center">
-            <Label Text="hello XF!" />
+        <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" Padding="0" Margin="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <maps:Map Grid.Row="0" Grid.RowSpan="3" x:Name="map" IsShowingUser="true" HorizontalOptions="FillAndExpand" />
+            <Grid Grid.Row="0" HorizontalOptions="FillAndExpand" VerticalOptions="Start" Padding="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <SearchBar x:Name="originEntry" Focused="Handle_Focused_1" Grid.Row="0" BackgroundColor="White" Placeholder="origin point" Text="{Binding PickupLocation}" />
+                <SearchBar x:Name="destinationEntry" Focused="Handle_Focused" Grid.Row="1" BackgroundColor="White" Placeholder="destination point" Text="{Binding DestinationLocation}" />
+                <ListView IsVisible="{Binding IsOirinPlacesList}" Grid.Row="1" Grid.RowSpan="2" x:Name="OriginSearchContentView" BackgroundColor="White" VerticalOptions="FillAndExpand" Footer="" SelectedItem="{Binding PlaceSelected, Mode=TwoWay}" ItemsSource="{Binding Places}" HasUnevenRows="true"
+                    SeparatorColor="Gray" ios:ListView.SeparatorStyle="FullWidth" ItemSelected="Handle_ItemSelected">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ViewCell>
+                                <Grid Padding="20,15" RowSpacing="2" ColumnSpacing="20">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Label LineBreakMode="MiddleTruncation" Text="{Binding StructuredFormatting.MainText}" Grid.Row="0" Grid.Column="1" />
+                                    <Label LineBreakMode="MiddleTruncation" FontSize="14" Text="{Binding StructuredFormatting.SecondaryText}" TextColor="Gray" Grid.Row="1" Grid.Column="1" />
+                                </Grid>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <ListView IsVisible="{Binding IsDestingationPlacesList}" Grid.Row="2" x:Name="searchContentView" BackgroundColor="White" VerticalOptions="FillAndExpand" ItemSelected="Handle_ItemSelected1" Footer="" SelectedItem="{Binding PlaceSelected, Mode=TwoWay}" ItemsSource="{Binding Places}" HasUnevenRows="true"
+                    SeparatorColor="Gray" ios:ListView.SeparatorStyle="FullWidth">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ViewCell>
+                                <Grid Padding="20,15" RowSpacing="2" ColumnSpacing="20">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Label LineBreakMode="MiddleTruncation" Text="{Binding StructuredFormatting.MainText}" Grid.Row="0" Grid.Column="1" />
+                                    <Label LineBreakMode="MiddleTruncation" FontSize="14" Text="{Binding StructuredFormatting.SecondaryText}" TextColor="Gray" Grid.Row="1" Grid.Column="1" />
+                                </Grid>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+            <Grid Grid.Row="1" HorizontalOptions="End" VerticalOptions="End" IsVisible="false">
+                <Button Text="+" BackgroundColor="Aqua" CornerRadius="25" />
+            </Grid>
         </Grid>
     </ContentPage.Content>
 </ContentPage>

@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Xamarin.Essentials;
 
 namespace Geolink
 {
@@ -31,6 +32,14 @@ namespace Geolink
 
         public async Task<GoogleDirection> GetDirections(string originLatitude, string originLongitude, string destinationLatitude, string destinationLongitude)
         {
+            var current = Connectivity.NetworkAccess;
+            if (current != NetworkAccess.Internet)
+            {
+
+                var action = App.Current.MainPage.DisplayAlert("price", "Please check your network", "ok", "cancel");
+                return null;
+            }
+
             GoogleDirection googleDirection = new GoogleDirection();
 
             using (var httpClient = CreateClient())
@@ -54,6 +63,13 @@ namespace Geolink
 
         public async Task<GooglePlaceAutoCompleteResult> GetPlaces(string text)
         {
+            var current = Connectivity.NetworkAccess;
+            if (current != NetworkAccess.Internet)
+            {
+                var action = App.Current.MainPage.DisplayAlert("price", "Please check your network", "ok", "cancel");
+                return null;
+            }
+
             GooglePlaceAutoCompleteResult results = null;
 
             using (var httpClient = CreateClient())
@@ -77,6 +93,15 @@ namespace Geolink
 
         public async Task<GooglePlace> GetPlaceDetails(string placeId)
         {
+
+            var current = Connectivity.NetworkAccess;
+            if (current != NetworkAccess.Internet)
+            {
+                var action = App.Current.MainPage.DisplayAlert("price", "Please check your network", "ok", "cancel");
+                return null;
+            }
+
+
             GooglePlace result = null;
             using (var httpClient = CreateClient())
             {
