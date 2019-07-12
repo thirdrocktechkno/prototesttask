@@ -249,7 +249,9 @@ namespace Geolink
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.ToString());
+                Logger.SendErrorLog(ex);
+
+                //Debug.WriteLine(ex.ToString());
             }
         }
 
@@ -263,6 +265,7 @@ namespace Geolink
             }
             catch (Exception ex)
             {
+                Logger.SendErrorLog(ex);
                 Debug.WriteLine(ex.ToString());
             }
         }
@@ -330,8 +333,6 @@ namespace Geolink
 
             if (googleDirection.Routes != null && googleDirection.Routes.Count > 0)
             {
-
-
                 var positions = (Enumerable.ToList(PolylineHelper.Decode(googleDirection.Routes.First().OverviewPolyline.Points)));
 
                 DrawRouteCommand.Execute(positions);
