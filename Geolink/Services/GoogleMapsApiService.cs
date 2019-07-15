@@ -40,14 +40,24 @@ namespace Geolink
                 return null;
             }
 
+            originLatitude = originLatitude.Replace(",", ".");
+            originLongitude = originLongitude.Replace(",", ".");
+            destinationLatitude = destinationLatitude.Replace(",", ".");
+            destinationLongitude = destinationLongitude.Replace(",", ".");
+
             GoogleDirection googleDirection = new GoogleDirection();
 
             using (var httpClient = CreateClient())
             {
-                var response = await httpClient.GetAsync($"api/directions/json?mode=driving&transit_routing_preference=less_driving&origin={originLatitude},{originLongitude}&destination={destinationLatitude},{destinationLongitude}&key={_googleMapsKey}").ConfigureAwait(false);
+                string str = "GetDirections Request : " + $"api/directions/json?region=pt-PT&origin={originLatitude},{originLongitude}&destination={destinationLatitude},{destinationLongitude}&key={_googleMapsKey}";
+                App.LogList.Add(str.Trim());
+
+                var response = await httpClient.GetAsync($"api/directions/json?region=pt-PT&origin={originLatitude},{originLongitude}&destination={destinationLatitude},{destinationLongitude}&key={_googleMapsKey}").ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    App.LogList.Add("GetDirections Response : " + json.Trim());
+
                     if (!string.IsNullOrWhiteSpace(json))
                     {
                         googleDirection = await Task.Run(() =>
@@ -56,6 +66,9 @@ namespace Geolink
 
                     }
                 }
+                else
+                    App.LogList.Add("GetDirections Response : False");
+
             }
 
             return googleDirection;
@@ -74,10 +87,15 @@ namespace Geolink
 
             using (var httpClient = CreateClient())
             {
+                string str = "GetPlaces Request : " + $"api/place/autocomplete/json?input={Uri.EscapeUriString(text)}&key={_googleMapsKey}";
+                App.LogList.Add(str.Trim());
+
                 var response = await httpClient.GetAsync($"api/place/autocomplete/json?input={Uri.EscapeUriString(text)}&key={_googleMapsKey}").ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    App.LogList.Add("GetPlaces Response : " + json.Trim());
+
                     if (!string.IsNullOrWhiteSpace(json) && json != "ERROR")
                     {
                         results = await Task.Run(() =>
@@ -86,6 +104,8 @@ namespace Geolink
 
                     }
                 }
+                else
+                    App.LogList.Add("GetPlaces Response : False");
             }
 
             return results;
@@ -105,15 +125,22 @@ namespace Geolink
             GooglePlace result = null;
             using (var httpClient = CreateClient())
             {
+                string str = "GetPlaceDetails Request : " + $"api/place/details/json?placeid={Uri.EscapeUriString(placeId)}&key={_googleMapsKey}";
+                App.LogList.Add(str.Trim());
+
                 var response = await httpClient.GetAsync($"api/place/details/json?placeid={Uri.EscapeUriString(placeId)}&key={_googleMapsKey}").ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    App.LogList.Add("GetPlaceDetails Response : " + json.Trim());
+
                     if (!string.IsNullOrWhiteSpace(json) && json != "ERROR")
                     {
                         result = new GooglePlace(JObject.Parse(json));
                     }
                 }
+                else
+                    App.LogList.Add("GetPlaceDetails Response : False");
             }
 
             return result;

@@ -26,7 +26,6 @@ namespace Geolink
                 latLongList = value; OnPropertyChanged();
             }
         }
-
         #region Bindable properties
         public bool isDestinationfocused = false, isOriginFocuse = false;
         public static readonly BindableProperty CenterMapCommandProperty =
@@ -87,6 +86,7 @@ namespace Geolink
                 UpdateCommand = new Command<Xamarin.Forms.GoogleMaps.Position>(Update);
                 CenterMapCommand = new Command<Location>(OnCenterMap);
                 CleanPolylineCommand = new Command(CleanPolyline);
+                NavigationPage.SetHasNavigationBar(this, false);
 
                 LoadPolygon(Application.Current.Properties);
             }
@@ -536,6 +536,19 @@ namespace Geolink
         {
             return (rad * 180.0 / Math.PI);
         }
+
+        void Handle_Clicked(object sender, System.EventArgs e)
+        {
+            try
+            {
+                App.Navigation.PushAsync(new LoggerPage(App.LogList));
+            }
+            catch (Exception ex)
+            {
+                Logger.SendErrorLog(ex);
+            }
+        }
+
         #endregion
     }
 }

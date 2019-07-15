@@ -72,8 +72,8 @@
                     </ListView.ItemTemplate>
                 </ListView>
             </Grid>
-            <Grid Grid.Row="1" HorizontalOptions="End" VerticalOptions="End" IsVisible="false">
-                <Button Text="+" BackgroundColor="Aqua" CornerRadius="25" />
+            <Grid Grid.Row="1" HorizontalOptions="Start" VerticalOptions="End" Padding="10">
+                <Button Text="Generate Log" BackgroundColor="White" TextColor="Black" BorderColor="Black" BorderWidth="2" Clicked="Handle_Clicked" />
             </Grid>
         </Grid>
     </ContentPage.Content>
