@@ -49,7 +49,7 @@ namespace Geolink
 
             using (var httpClient = CreateClient())
             {
-                string str = "GetDirections Request : " + $"api/directions/json?region=pt-PT&origin={originLatitude},{originLongitude}&destination={destinationLatitude},{destinationLongitude}&key={_googleMapsKey}";
+                string str = "GetDirections Request : " + ApiBaseAddress + $"api/directions/json?region=pt-PT&origin={originLatitude},{originLongitude}&destination={destinationLatitude},{destinationLongitude}&key={_googleMapsKey}";
                 App.LogList.Add(str.Trim());
 
                 var response = await httpClient.GetAsync($"api/directions/json?region=pt-PT&origin={originLatitude},{originLongitude}&destination={destinationLatitude},{destinationLongitude}&key={_googleMapsKey}").ConfigureAwait(false);
@@ -87,7 +87,7 @@ namespace Geolink
 
             using (var httpClient = CreateClient())
             {
-                string str = "GetPlaces Request : " + $"api/place/autocomplete/json?input={Uri.EscapeUriString(text)}&key={_googleMapsKey}";
+                string str = "GetPlaces Request : " + ApiBaseAddress + $"api/place/autocomplete/json?input={Uri.EscapeUriString(text)}&key={_googleMapsKey}";
                 App.LogList.Add(str.Trim());
 
                 var response = await httpClient.GetAsync($"api/place/autocomplete/json?input={Uri.EscapeUriString(text)}&key={_googleMapsKey}").ConfigureAwait(false);
@@ -125,7 +125,7 @@ namespace Geolink
             GooglePlace result = null;
             using (var httpClient = CreateClient())
             {
-                string str = "GetPlaceDetails Request : " + $"api/place/details/json?placeid={Uri.EscapeUriString(placeId)}&key={_googleMapsKey}";
+                string str = "GetPlaceDetails Request : " + ApiBaseAddress + $"api/place/details/json?placeid={Uri.EscapeUriString(placeId)}&key={_googleMapsKey}";
                 App.LogList.Add(str.Trim());
 
                 var response = await httpClient.GetAsync($"api/place/details/json?placeid={Uri.EscapeUriString(placeId)}&key={_googleMapsKey}").ConfigureAwait(false);
